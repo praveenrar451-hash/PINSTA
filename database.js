@@ -41,7 +41,7 @@ const db = {
     const newPost = { 
       id: Date.now(), 
       ...postObj, 
-      likes: 0,
+      likes: [], // Array of usernames who liked
       comments: [],
       created_at: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString() 
     };
@@ -49,15 +49,25 @@ const db = {
     callback(null);
   },
 
-  likePost: (postId, callback) => {
+  toggleLikePost: (postId, username, callback) => {
     const post = posts.find(p => p.id == postId);
-    if (post) post.likes += 1;
+    if (post) {
+      if (!post.likes) post.likes = [];
+      const index = post.likes.indexOf(username);
+      if (index > -1) {
+        post.likes.splice(index, 1); // Unlike
+      } else {
+        post.likes.push(username); // Like
+      }
+    }
     callback(null);
   },
 
   addComment: (postId, username, text, callback) => {
     const post = posts.find(p => p.id == postId);
-    if (post) post.comments.push({ username, text });
+    if (post) {
+      post.comments.push({ username, text });
+    }
     callback(null);
   },
 
