@@ -8,19 +8,18 @@
 <body>
     <nav class="navbar">
         <h2>@<%= profileUser.username %></h2>
-        <a href="/logout" style="color: #ed4956; text-decoration: none; font-size: 13px; font-weight: 600;">Logout</a>
+        <a href="/chat" style="font-size: 20px; text-decoration: none;" title="Chats">💬</a>
     </nav>
 
     <div class="container" style="max-width: 600px;">
-        <!-- Profile Header -->
         <div class="profile-header">
             <div class="profile-avatar">👤</div>
             <div class="profile-info">
                 <h3>@<%= profileUser.username %></h3>
                 <div class="profile-stats">
                     <span><b><%= posts.length %></b> posts</span>
-                    <span><b><%= profileUser.followers.length %></b> followers</span>
-                    <span><b><%= profileUser.following.length %></b> following</span>
+                    <span onclick="openUserList('followers')" style="cursor: pointer;"><b><%= profileUser.followers.length %></b> followers</span>
+                    <span onclick="openUserList('following')" style="cursor: pointer;"><b><%= profileUser.following.length %></b> following</span>
                 </div>
                 <% if (loggedInUser.username !== profileUser.username) { %>
                     <form action="/follow/<%= profileUser.username %>" method="POST">
@@ -32,7 +31,6 @@
             </div>
         </div>
 
-        <!-- User Posts Grid -->
         <div class="profile-grid">
             <% if (posts.length === 0) { %>
                 <p class="no-posts" style="grid-column: span 3;">No posts yet.</p>
@@ -45,6 +43,15 @@
                     </div>
                 <% }) %>
             <% } %>
+        </div>
+    </div>
+
+    <!-- Followers / Following List Modal -->
+    <div id="userListModal" class="user-list-modal">
+        <div class="user-list-content">
+            <span class="close-modal" onclick="closeUserList()">&times;</span>
+            <h3 id="userListTitle" style="margin-bottom: 15px; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 8px;"></h3>
+            <div id="userListContainer"></div>
         </div>
     </div>
 
@@ -75,10 +82,36 @@
         <a href="/feed" class="nav-item">🏠</a>
         <button class="nav-item" onclick="openSearch()">🔍</button>
         <button class="nav-item" onclick="openModal()">➕</button>
+        <a href="/chat" class="nav-item">💬</a>
         <a href="/profile/<%= loggedInUser.username %>" class="nav-item active">👤</a>
     </div>
 
     <script>
+        const followersData = <%- JSON.stringify(profileUser.followers) %>;
+        const followingData = <%- JSON.stringify(profileUser.following) %>;
+
+        function openUserList(type) {
+            let title = document.getElementById('userListTitle');
+            let container = document.getElementById('userListContainer');
+            let list = type === 'followers' ? followersData : followingData;
+            
+            title.innerText = type === 'followers' ? 'Followers' : 'Following';
+            let html = '';
+            if (list.length === 0) {
+                html = '<p style="color: #888; font-size: 13px;">No users found.</p>';
+            } else {
+                list.forEach(username => {
+                    html += `<a href="/profile/${username}" class="user-search-item"><b>@${username}</b></a>`;
+                });
+            }
+            container.innerHTML = html;
+            document.getElementById('userListModal').style.display = 'flex';
+        }
+
+        function closeUserList() {
+            document.getElementById('userListModal').style.display = 'none';
+        }
+
         function openModal() { document.getElementById('postModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('postModal').style.display = 'none'; }
         
