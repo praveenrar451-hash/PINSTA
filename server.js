@@ -12,7 +12,8 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const PORT = process.env.PORT || 3000;
+// Render ke liye dynamic port aur host setting
+const PORT = process.env.PORT || 10000;
 
 app.set('trust proxy', 1);
 
@@ -46,7 +47,6 @@ const sessionMiddleware = session({
 
 app.use(sessionMiddleware);
 
-// Share session with Socket.io
 io.use((socket, next) => {
   sessionMiddleware(socket.request, {}, next);
 });
@@ -149,7 +149,6 @@ app.post('/comment/:id', isAuthenticated, (req, res) => {
   }
 });
 
-// Chat Page routes
 app.get('/chat', isAuthenticated, (req, res) => {
   res.render('chat', { user: req.session.user, chatUser: null, messages: [] });
 });
@@ -170,7 +169,6 @@ app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
 
-// Socket.io Real-time messaging
 io.on('connection', (socket) => {
   const sessionUser = socket.request.session?.user;
   if (!sessionUser) return;
@@ -184,10 +182,12 @@ io.on('connection', (socket) => {
 
     const savedMsg = db.saveMessage(sender, receiver, text);
 
-    // Send to receiver and sender in real-time
     io.to(receiver).emit('receive_message', savedMsg);
     io.to(sender).emit('receive_message', savedMsg);
   });
 });
 
-server.listen(PORT, () => console.log(`PINSTA running on port ${PORT}`));
+// Render host and port binding fix
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`PINSTA running on port ${PORT}`);
+});
