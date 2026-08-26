@@ -3,7 +3,7 @@ let posts = [];
 
 const db = {
   findUserByUsername: (username, callback) => {
-    const user = users.find(u => u.username === username);
+    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
     callback(null, user);
   },
 
@@ -13,11 +13,16 @@ const db = {
   },
 
   insertUser: (userObj, callback) => {
-    const existing = users.find(u => u.username === userObj.username);
+    const existing = users.find(u => u.username.toLowerCase() === userObj.username.toLowerCase());
     if (existing) {
       return callback(new Error('Username already taken'));
     }
-    const newUser = { id: Date.now(), ...userObj };
+    const newUser = { 
+      id: Date.now(), 
+      ...userObj, 
+      followers: [], 
+      following: [] 
+    };
     users.push(newUser);
     callback(null, { lastID: newUser.id });
   },
@@ -25,6 +30,11 @@ const db = {
   getAllPosts: (callback) => {
     const sortedPosts = [...posts].reverse();
     callback(null, sortedPosts);
+  },
+
+  getPostsByUsername: (username, callback) => {
+    const userPosts = posts.filter(p => p.username.toLowerCase() === username.toLowerCase()).reverse();
+    callback(null, userPosts);
   },
 
   insertPost: (postObj, callback) => {
@@ -41,16 +51,29 @@ const db = {
 
   likePost: (postId, callback) => {
     const post = posts.find(p => p.id == postId);
-    if (post) {
-      post.likes += 1;
-    }
+    if (post) post.likes += 1;
     callback(null);
   },
 
   addComment: (postId, username, text, callback) => {
     const post = posts.find(p => p.id == postId);
-    if (post) {
-      post.comments.push({ username, text });
+    if (post) post.comments.push({ username, text });
+    callback(null);
+  },
+
+  toggleFollow: (currentUsername, targetUsername, callback) => {
+    const currentUser = users.find(u => u.username === currentUsername);
+    const targetUser = users.find(u => u.username === targetUsername);
+
+    if (currentUser && targetUser && currentUsername !== targetUsername) {
+      const isFollowing = currentUser.following.includes(targetUsername);
+      if (isFollowing) {
+        currentUser.following = currentUser.following.filter(u => u !== targetUsername);
+        targetUser.followers = targetUser.followers.filter(u => u !== currentUsername);
+      } else {
+        currentUser.following.push(targetUsername);
+        targetUser.followers.push(currentUsername);
+      }
     }
     callback(null);
   }
