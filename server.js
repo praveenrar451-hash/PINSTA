@@ -2,12 +2,32 @@ const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const path = require('path');
+const multer = require('multer');
+const fs = require('fs');
 const db = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.set('trust proxy', 1);
+
+// Ensure uploads folder exists
+const uploadDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Multer Storage Configuration for Direct File Upload
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage: storage });
 
 // Middleware setup
 app.use(express.urlencoded({ extended: true }));
@@ -30,7 +50,7 @@ app.use(session({
 
 // Authentication Middleware
 const isAuthenticated = (req, res, next) => {
-  if (req.session.user) {
+  if (req.session && req.session.user) {
     return next();
   }
   res.redirect('/login');
@@ -39,7 +59,7 @@ const isAuthenticated = (req, res, next) => {
 // --- ROUTES ---
 
 app.get('/', (req, res) => {
-  if (req.session.user) {
+  if (req.session && req.session.user) {
     res.redirect('/feed');
   } else {
     res.redirect('/login');
@@ -60,7 +80,7 @@ app.post('/signup', async (req, res) => {
       if (err) {
         return res.render('signup', { error: 'Username already taken!' });
       }
-      req.session.user = { id: result.lastID, username };
+      req.session.user = { id: result.lastID, username: username };
       res.redirect('/feed');
     });
   } catch (err) {
@@ -94,23 +114,29 @@ app.post('/login', (req, res) => {
 // Feed / Home Page
 app.get('/feed', isAuthenticated, (req, res) => {
   db.getAllPosts((err, posts) => {
-    if (err) {
-      posts = [];
-    }
-    res.render('feed', { user: req.session.user, posts });
+    const safePosts = err || !posts ? [] : posts;
+    res.render('feed', { user: req.session.user, posts: safePosts });
   });
 });
 
-// Create Post Route
-app.post('/post', isAuthenticated, (req, res) => {
-  const { content, image_url } = req.body;
+// Create Post Route with Direct File Upload (`upload.single('image')`)
+app.post('/post', isAuthenticated, upload.single('image'), (req, res) => {
+  const { content } = req.body;
+  if (!req.session.user) return res.redirect('/login');
+
   const { id, username } = req.session.user;
+  
+  // Agar user ne photo select ki hai toh uska path set karein, warna null
+  let imagePath = null;
+  if (req.file) {
+    imagePath = '/uploads/' + req.file.filename;
+  }
 
   const postData = {
     user_id: id,
     username: username,
-    content: content,
-    image_url: image_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600'
+    content: content || '',
+    image_url: imagePath
   };
 
   db.insertPost(postData, () => {
