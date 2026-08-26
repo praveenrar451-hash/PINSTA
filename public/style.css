@@ -8,10 +8,9 @@
 body {
     background-color: #000;
     color: #fff;
-    padding-bottom: 70px; /* Space for bottom nav */
+    padding-bottom: 70px;
 }
 
-/* Auth Pages */
 .auth-body {
     display: flex;
     justify-content: center;
@@ -76,7 +75,6 @@ body {
     font-weight: 600;
 }
 
-/* Top Navbar */
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -94,7 +92,7 @@ body {
     font-family: cursive;
 }
 
-/* Bottom Instagram Navigation Bar */
+/* Bottom Navigation Bar with Chat Icon Included */
 .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -125,7 +123,6 @@ body {
     color: #0095f6;
 }
 
-/* Search Overlay Modal */
 .search-modal {
     display: none;
     position: fixed;
@@ -170,18 +167,12 @@ body {
     color: #fff;
 }
 
-.user-search-item b {
-    font-size: 15px;
-}
-
-/* Container & Feed */
 .container {
     max-width: 470px;
     margin: 15px auto;
     padding: 0 10px;
 }
 
-/* Upload Modal */
 .modal {
     display: none;
     position: fixed;
@@ -234,7 +225,6 @@ body {
     cursor: pointer;
 }
 
-/* Post Card */
 .post-card {
     background: #000;
     border: 1px solid #262626;
@@ -277,7 +267,7 @@ body {
     gap: 15px;
 }
 
-.like-form button, .save-btn {
+.like-form button, .save-btn, .comment-toggle-btn {
     background: none;
     border: none;
     color: #fff;
@@ -305,7 +295,6 @@ body {
     margin-right: 5px;
 }
 
-/* Comments */
 .comments-section {
     padding: 0 15px 12px 15px;
 }
@@ -375,6 +364,7 @@ body {
     gap: 20px;
     font-size: 14px;
     margin-bottom: 12px;
+    cursor: pointer;
 }
 
 .profile-stats b {
@@ -409,4 +399,29 @@ body {
     text-align: center;
     color: #a8a8a8;
     margin-top: 40px;
+}
+
+/* User List Modal for Followers/Following */
+.user-list-modal {
+    display: none;
+    position: fixed;
+    z-index: 3000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    justify-content: center;
+    align-items: center;
+}
+
+.user-list-content {
+    background: #262626;
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 350px;
+    max-height: 400px;
+    overflow-y: auto;
+    position: relative;
 }
