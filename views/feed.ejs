@@ -15,12 +15,15 @@
     </nav>
 
     <div class="container">
-        <!-- Create Post Box -->
+        <!-- Create Post Box with File Upload -->
         <div class="create-post-card">
             <h3>Create a New Post</h3>
-            <form action="/post" method="POST">
+            <form action="/post" method="POST" enctype="multipart/form-data">
                 <input type="text" name="content" placeholder="Write a caption..." required>
-                <input type="text" name="image_url" placeholder="Image URL (optional)">
+                <div class="file-input-wrapper">
+                    <label for="file-upload" class="file-upload-label">📁 Choose Photo from Device</label>
+                    <input id="file-upload" type="file" name="image" accept="image/*">
+                </div>
                 <button type="submit">Post</button>
             </form>
         </div>
