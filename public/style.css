@@ -1,188 +1,24 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-body {
-    background-color: #0f172a;
-    color: #f8fafc;
-}
-
-.auth-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-.auth-card {
-    background: #1e293b;
-    padding: 40px;
-    border-radius: 12px;
-    width: 350px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    text-align: center;
-}
-
-.auth-card h1 {
-    font-size: 32px;
-    margin-bottom: 5px;
-    color: #38bdf8;
-    letter-spacing: 2px;
-}
-
-.tagline {
-    font-size: 12px;
-    color: #94a3b8;
-    margin-bottom: 20px;
-}
-
-.auth-card input {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    background: #0f172a;
-    border: 1px solid #334155;
-    border-radius: 6px;
-    color: #fff;
-}
-
-.auth-card button {
-    width: 100%;
-    padding: 12px;
-    background: #38bdf8;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    color: #0f172a;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.auth-card button:hover {
-    background: #0ea5e9;
-}
-
-.error-msg {
-    color: #f87171;
-    font-size: 13px;
-    margin-bottom: 10px;
-}
-
-.switch-link {
-    margin-top: 15px;
-    font-size: 14px;
-    color: #94a3b8;
-}
-
-.switch-link a {
-    color: #38bdf8;
-    text-decoration: none;
-}
-
-/* Navbar */
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 40px;
-    background: #1e293b;
-    border-bottom: 1px solid #334155;
-}
-
-.navbar h2 {
-    color: #38bdf8;
-}
-
-.nav-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.logout-btn {
-    background: #ef4444;
-    color: white;
-    padding: 6px 14px;
-    border-radius: 4px;
-    text-decoration: none;
-    font-size: 14px;
-}
-
-/* Container & Feed */
-.container {
-    max-width: 600px;
-    margin: 30px auto;
-    padding: 0 15px;
-}
-
-.create-post-card {
-    background: #1e293b;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 25px;
-    border: 1px solid #334155;
-}
-
-.create-post-card h3 {
+/* File Upload Styling */
+.file-input-wrapper {
     margin-bottom: 12px;
-    font-size: 16px;
 }
 
-.create-post-card input {
-    width: 100%;
+.file-input-wrapper input[type="file"] {
+    display: none;
+}
+
+.file-upload-label {
+    display: block;
+    background: #0f172a;
+    border: 1px dashed #38bdf8;
+    color: #38bdf8;
     padding: 10px;
-    margin-bottom: 10px;
-    background: #0f172a;
-    border: 1px solid #334155;
-    border-radius: 4px;
-    color: #fff;
-}
-
-.create-post-card button {
-    background: #38bdf8;
-    color: #0f172a;
-    border: none;
-    padding: 8px 16px;
-    font-weight: bold;
+    text-align: center;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 14px;
 }
 
-.post-card {
+.file-upload-label:hover {
     background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-}
-
-.post-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    color: #38bdf8;
-}
-
-.post-header small {
-    color: #64748b;
-}
-
-.post-text {
-    margin-bottom: 12px;
-}
-
-.post-img {
-    width: 100%;
-    border-radius: 6px;
-    max-height: 400px;
-    object-fit: cover;
-}
-
-.no-posts {
-    text-align: center;
-    color: #64748b;
-    margin-top: 40px;
 }
