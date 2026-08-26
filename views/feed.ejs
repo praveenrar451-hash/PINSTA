@@ -2,36 +2,60 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Feed - PINSTA</title>
+    <title>PINSTA</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <nav class="navbar">
-        <h2>PINSTA 📸</h2>
+        <h2>PINSTA</h2>
+        <div class="nav-center">
+            <form action="/feed" method="GET" class="search-form">
+                <input type="text" name="search" placeholder="Search username..." value="<%= searchQuery || '' %>">
+            </form>
+        </div>
         <div class="nav-right">
-            <span><b>@<%= user.username %></b></span>
+            <a href="/chat" class="icon-btn" title="Chats">💬</a>
             <a href="/logout" class="logout-btn">Logout</a>
         </div>
     </nav>
 
     <div class="container">
-        <!-- Create Post Box with File Upload -->
-        <div class="create-post-card">
-            <h3>Create a New Post</h3>
-            <form action="/post" method="POST" enctype="multipart/form-data">
-                <input type="text" name="content" placeholder="Write a caption..." required>
-                <div class="file-input-wrapper">
-                    <label for="file-upload" class="file-upload-label">📁 Choose Photo from Device</label>
-                    <input id="file-upload" type="file" name="image" accept="image/*">
-                </div>
-                <button type="submit">Post</button>
-            </form>
+        <!-- Floating Plus Button to Open Upload Modal -->
+        <div class="fab-container">
+            <button class="fab-btn" onclick="openModal()">+</button>
+        </div>
+
+        <!-- Search Results Box -->
+        <% if (searchUsers !== null) { %>
+            <div class="search-results">
+                <h4>Search Results:</h4>
+                <% if (searchUsers.length === 0) { %>
+                    <p style="font-size: 13px; color: #a8a8a8;">No user found.</p>
+                <% } else { %>
+                    <% searchUsers.forEach(u => { %>
+                        <div class="user-result"><b>@<%= u.username %></b></div>
+                    <% }) %>
+                <% } %>
+            </div>
+        <% } %>
+
+        <!-- Post Upload Modal -->
+        <div id="postModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+                <h3 style="margin-bottom: 15px; font-size: 18px;">Create New Post</h3>
+                <form action="/post" method="POST" enctype="multipart/form-data">
+                    <input type="file" name="image" accept="image/*" required style="margin-bottom: 12px; color: #fff;">
+                    <input type="text" name="content" placeholder="Write a caption..." required>
+                    <button type="submit">Share Post</button>
+                </form>
+            </div>
         </div>
 
         <!-- Feed Section -->
         <div class="feed-section">
             <% if (posts.length === 0) { %>
-                <p class="no-posts">No posts yet. Be the first to share something!</p>
+                <p class="no-posts">No posts yet.</p>
             <% } else { %>
                 <% posts.forEach(post => { %>
                     <div class="post-card">
@@ -39,14 +63,50 @@
                             <b>@<%= post.username %></b>
                             <small><%= post.created_at %></small>
                         </div>
-                        <p class="post-text"><%= post.content %></p>
                         <% if (post.image_url) { %>
-                            <img src="<%= post.image_url %>" alt="Post Image" class="post-img">
+                            <img src="<%= post.image_url %>" alt="Post" class="post-img">
                         <% } %>
+                        <div class="post-actions">
+                            <div class="action-left">
+                                <form action="/like/<%= post.id %>" method="POST" class="like-form">
+                                    <button type="submit" title="Like">🤍</button>
+                                </form>
+                                <span title="Comment">💬</span>
+                            </div>
+                            <button class="save-btn" title="Save / Pin">🔖</button>
+                        </div>
+                        <div class="post-likes"><%= post.likes %> likes</div>
+                        <div class="post-text"><span>@<%= post.username %></span> <%= post.content %></div>
+
+                        <!-- Comments Section -->
+                        <div class="comments-section">
+                            <% post.comments.forEach(c => { %>
+                                <div class="comment-item"><b>@<%= c.username %></b> <%= c.text %></div>
+                            <% }) %>
+                            <form action="/comment/<%= post.id %>" method="POST" class="comment-form">
+                                <input type="text" name="text" placeholder="Add a comment..." required>
+                                <button type="submit">Post</button>
+                            </form>
+                        </div>
                     </div>
                 <% }) %>
             <% } %>
         </div>
     </div>
+
+    <script>
+        function openModal() {
+            document.getElementById('postModal').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('postModal').style.display = 'none';
+        }
+        window.onclick = function(event) {
+            let modal = document.getElementById('postModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
 </body>
 </html>
