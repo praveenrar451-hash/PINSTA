@@ -1,6 +1,5 @@
-let users = [];
+let users = let users = [];
 let posts = [];
-let messages = []; // Messages store karne ke liye array
 
 const db = {
   findUserByUsername: (username, callback) => {
@@ -42,7 +41,7 @@ const db = {
     const newPost = { 
       id: Date.now(), 
       ...postObj, 
-      likes: [], 
+      likes: [], // Array of usernames who liked
       comments: [],
       created_at: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString() 
     };
@@ -56,9 +55,9 @@ const db = {
       if (!post.likes) post.likes = [];
       const index = post.likes.indexOf(username);
       if (index > -1) {
-        post.likes.splice(index, 1);
+        post.likes.splice(index, 1); // Unlike
       } else {
-        post.likes.push(username);
+        post.likes.push(username); // Like
       }
     }
     callback(null);
@@ -87,27 +86,6 @@ const db = {
       }
     }
     callback(null);
-  },
-
-  // Chat/Messages functions
-  saveMessage: (sender, receiver, text) => {
-    const msg = {
-      id: Date.now(),
-      sender,
-      receiver,
-      text,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-    messages.push(msg);
-    return msg;
-  },
-
-  getConversation: (user1, user2, callback) => {
-    const conv = messages.filter(m => 
-      (m.sender === user1 && m.receiver === user2) || 
-      (m.sender === user2 && m.receiver === user1)
-    );
-    callback(null, conv);
   }
 };
 
