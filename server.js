@@ -87,7 +87,6 @@ app.get('/feed', isAuthenticated, (req, res) => {
   });
 });
 
-// Search API Endpoint / Route
 app.get('/search', isAuthenticated, (req, res) => {
   const query = req.query.q || '';
   db.searchUsers(query, (err, users) => {
@@ -95,7 +94,6 @@ app.get('/search', isAuthenticated, (req, res) => {
   });
 });
 
-// User Profile Route
 app.get('/profile/:username', isAuthenticated, (req, res) => {
   const profileUsername = req.params.username;
   db.findUserByUsername(profileUsername, (err, targetUser) => {
@@ -110,7 +108,6 @@ app.get('/profile/:username', isAuthenticated, (req, res) => {
   });
 });
 
-// Follow / Unfollow Route
 app.post('/follow/:username', isAuthenticated, (req, res) => {
   db.toggleFollow(req.session.user.username, req.params.username, () => {
     res.redirect('/profile/' + req.params.username);
@@ -128,19 +125,18 @@ app.post('/post', isAuthenticated, upload.single('image'), (req, res) => {
 });
 
 app.post('/like/:id', isAuthenticated, (req, res) => {
-  db.likePost(req.params.id, () => res.redirect('/feed'));
+  db.toggleLikePost(req.params.id, req.session.user.username, () => res.redirect('back'));
 });
 
 app.post('/comment/:id', isAuthenticated, (req, res) => {
   const { text } = req.body;
   if (text) {
-    db.addComment(req.params.id, req.session.user.username, text, () => res.redirect('/feed'));
+    db.addComment(req.params.id, req.session.user.username, text, () => res.redirect('back'));
   } else {
-    res.redirect('/feed');
+    res.redirect('back');
   }
 });
 
-// Chat Page Fixed
 app.get('/chat', isAuthenticated, (req, res) => {
   res.render('chat', { user: req.session.user });
 });
