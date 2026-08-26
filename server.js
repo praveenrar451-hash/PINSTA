@@ -17,9 +17,7 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
+  destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, uniqueSuffix + path.extname(file.originalname));
@@ -42,50 +40,37 @@ app.use(session({
 }));
 
 const isAuthenticated = (req, res, next) => {
-  if (req.session && req.session.user) {
-    return next();
-  }
+  if (req.session && req.session.user) return next();
   res.redirect('/login');
 };
 
 app.get('/', (req, res) => {
-  if (req.session && req.session.user) {
-    res.redirect('/feed');
-  } else {
-    res.redirect('/login');
-  }
+  if (req.session && req.session.user) res.redirect('/feed');
+  else res.redirect('/login');
 });
 
-app.get('/signup', (req, res) => {
-  res.render('signup', { error: null });
-});
+app.get('/signup', (req, res) => res.render('signup', { error: null }));
 
 app.post('/signup', async (req, res) => {
   const { username, email_or_phone, password } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     db.insertUser({ username, email_or_phone, password: hashedPassword }, (err, result) => {
-      if (err) {
-        return res.render('signup', { error: 'Username already taken!' });
-      }
+      if (err) return res.render('signup', { error: 'Username already taken!' });
       req.session.user = { id: result.lastID, username: username };
       res.redirect('/feed');
     });
   } catch (err) {
-    res.render('signup', { error: 'Something went wrong. Try again!' });
+    res.render('signup', { error: 'Something went wrong!' });
   }
 });
 
-app.get('/login', (req, res) => {
-  res.render('login', { error: null });
-});
+app.get('/login', (req, res) => res.render('login', { error: null }));
 
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
   db.findUserByUsername(username, async (err, user) => {
-    if (err || !user) {
-      return res.render('login', { error: 'Invalid username or password!' });
-    }
+    if (err || !user) return res.render('login', { error: 'Invalid username or password!' });
     const match = await bcrypt.compare(password, user.password);
     if (match) {
       req.session.user = { id: user.id, username: user.username };
@@ -97,58 +82,71 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/feed', isAuthenticated, (req, res) => {
-  const searchQuery = req.query.search || '';
   db.getAllPosts((err, posts) => {
-    const safePosts = err || !posts ? [] : posts;
-    if (searchQuery.trim() !== '') {
-      db.searchUsers(searchQuery, (err, matchedUsers) => {
-        res.render('feed', { user: req.session.user, posts: safePosts, searchUsers: matchedUsers, searchQuery });
+    res.render('feed', { user: req.session.user, posts: posts || [] });
+  });
+});
+
+// Search API Endpoint / Route
+app.get('/search', isAuthenticated, (req, res) => {
+  const query = req.query.q || '';
+  db.searchUsers(query, (err, users) => {
+    res.json(users || []);
+  });
+});
+
+// User Profile Route
+app.get('/profile/:username', isAuthenticated, (req, res) => {
+  const profileUsername = req.params.username;
+  db.findUserByUsername(profileUsername, (err, targetUser) => {
+    if (!targetUser) return res.redirect('/feed');
+    db.getPostsByUsername(profileUsername, (err, userPosts) => {
+      res.render('profile', { 
+        loggedInUser: req.session.user, 
+        profileUser: targetUser, 
+        posts: userPosts || [] 
       });
-    } else {
-      res.render('feed', { user: req.session.user, posts: safePosts, searchUsers: null, searchQuery: '' });
-    }
+    });
+  });
+});
+
+// Follow / Unfollow Route
+app.post('/follow/:username', isAuthenticated, (req, res) => {
+  db.toggleFollow(req.session.user.username, req.params.username, () => {
+    res.redirect('/profile/' + req.params.username);
   });
 });
 
 app.post('/post', isAuthenticated, upload.single('image'), (req, res) => {
   const { content } = req.body;
   if (!req.session.user) return res.redirect('/login');
-
-  const { id, username } = req.session.user;
   let imagePath = req.file ? '/uploads/' + req.file.filename : null;
 
-  db.insertPost({ user_id: id, username, content: content || '', image_url: imagePath }, () => {
+  db.insertPost({ user_id: req.session.user.id, username: req.session.user.username, content: content || '', image_url: imagePath }, () => {
     res.redirect('/feed');
   });
 });
 
 app.post('/like/:id', isAuthenticated, (req, res) => {
-  db.likePost(req.params.id, () => {
-    res.redirect('/feed');
-  });
+  db.likePost(req.params.id, () => res.redirect('/feed'));
 });
 
 app.post('/comment/:id', isAuthenticated, (req, res) => {
   const { text } = req.body;
   if (text) {
-    db.addComment(req.params.id, req.session.user.username, text, () => {
-      res.redirect('/feed');
-    });
+    db.addComment(req.params.id, req.session.user.username, text, () => res.redirect('/feed'));
   } else {
     res.redirect('/feed');
   }
 });
 
+// Chat Page Fixed
 app.get('/chat', isAuthenticated, (req, res) => {
   res.render('chat', { user: req.session.user });
 });
 
 app.get('/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/login');
-  });
+  req.session.destroy(() => res.redirect('/login'));
 });
 
-app.listen(PORT, () => {
-  console.log(`PINSTA server is running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`PINSTA running on port ${PORT}`));
