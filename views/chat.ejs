@@ -100,7 +100,6 @@
     <div class="container" style="padding: 0; margin-top: 10px;">
         <div class="chat-container">
             <% if (!chatUser) { %>
-                <!-- User Search Panel inside Chat -->
                 <div class="chat-sidebar">
                     <h3 style="font-size: 16px; margin-bottom: 12px;">Direct Messages</h3>
                     <input type="text" id="chatSearchInput" placeholder="Search username to chat..." onkeyup="performChatSearch()" style="width: 100%; padding: 10px; background: #121212; border: 1px solid #363636; border-radius: 6px; color: #fff; margin-bottom: 15px; outline: none;">
@@ -109,7 +108,6 @@
                     </div>
                 </div>
             <% } else { %>
-                <!-- Active Chat Window -->
                 <div class="chat-window">
                     <div class="chat-header-bar">
                         <a href="/chat" style="color: #fff; text-decoration: none; font-size: 18px; margin-right: 5px;">←</a>
@@ -132,7 +130,6 @@
         </div>
     </div>
 
-    <!-- Instagram Bottom Navigation Bar -->
     <div class="bottom-nav">
         <a href="/feed" class="nav-item">🏠</a>
         <button class="nav-item" onclick="openSearch()">🔍</button>
@@ -141,7 +138,6 @@
         <a href="/profile/<%= user.username %>" class="nav-item">👤</a>
     </div>
 
-    <!-- Post Upload Modal -->
     <div id="postModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal()">&times;</span>
@@ -154,7 +150,6 @@
         </div>
     </div>
 
-    <!-- Search Modal Overlay -->
     <div id="searchModal" class="search-modal">
         <div class="search-header">
             <input type="text" id="searchInput" placeholder="Search username..." onkeyup="performSearch()">
@@ -163,14 +158,12 @@
         <div id="searchResults" class="search-results-list"></div>
     </div>
 
-    <!-- Socket.io Client Script -->
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         const receiverUsername = "<%= chatUser ? chatUser.username : '' %>";
         const currentUsername = "<%= user.username %>";
 
-        // Scroll to bottom of messages on load
         window.onload = function() {
             const box = document.getElementById('messagesBox');
             if (box) box.scrollTop = box.scrollHeight;
