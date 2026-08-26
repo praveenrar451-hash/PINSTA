@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feed - PINSTA</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <h2>PINSTA 📸</h2>
+        <div class="nav-right">
+            <span><b>@<%= user.username %></b></span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Create Post Box -->
+        <div class="create-post-card">
+            <h3>Create a New Post</h3>
+            <form action="/post" method="POST">
+                <input type="text" name="content" placeholder="Write a caption..." required>
+                <input type="text" name="image_url" placeholder="Image URL (optional)">
+                <button type="submit">Post</button>
+            </form>
+        </div>
+
+        <!-- Feed Section -->
+        <div class="feed-section">
+            <% if (posts.length === 0) { %>
+                <p class="no-posts">No posts yet. Be the first to share something!</p>
+            <% } else { %>
+                <% posts.forEach(post => { %>
+                    <div class="post-card">
+                        <div class="post-header">
+                            <b>@<%= post.username %></b>
+                            <small><%= post.created_at %></small>
+                        </div>
+                        <p class="post-text"><%= post.content %></p>
+                        <% if (post.image_url) { %>
+                            <img src="<%= post.image_url %>" alt="Post Image" class="post-img">
+                        <% } %>
+                    </div>
+                <% }) %>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>
