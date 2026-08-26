@@ -1,4 +1,3 @@
-// In-Memory Secure Storage
 let users = [];
 let posts = [];
 
