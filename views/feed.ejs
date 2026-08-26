@@ -8,50 +8,10 @@
 <body>
     <nav class="navbar">
         <h2>PINSTA</h2>
-        <div class="nav-center">
-            <form action="/feed" method="GET" class="search-form">
-                <input type="text" name="search" placeholder="Search username..." value="<%= searchQuery || '' %>">
-            </form>
-        </div>
-        <div class="nav-right">
-            <a href="/chat" class="icon-btn" title="Chats">💬</a>
-            <a href="/logout" class="logout-btn">Logout</a>
-        </div>
+        <a href="/logout" style="color: #ed4956; text-decoration: none; font-size: 13px; font-weight: 600;">Logout</a>
     </nav>
 
     <div class="container">
-        <!-- Floating Plus Button to Open Upload Modal -->
-        <div class="fab-container">
-            <button class="fab-btn" onclick="openModal()">+</button>
-        </div>
-
-        <!-- Search Results Box -->
-        <% if (searchUsers !== null) { %>
-            <div class="search-results">
-                <h4>Search Results:</h4>
-                <% if (searchUsers.length === 0) { %>
-                    <p style="font-size: 13px; color: #a8a8a8;">No user found.</p>
-                <% } else { %>
-                    <% searchUsers.forEach(u => { %>
-                        <div class="user-result"><b>@<%= u.username %></b></div>
-                    <% }) %>
-                <% } %>
-            </div>
-        <% } %>
-
-        <!-- Post Upload Modal -->
-        <div id="postModal" class="modal">
-            <div class="modal-content">
-                <span class="close-modal" onclick="closeModal()">&times;</span>
-                <h3 style="margin-bottom: 15px; font-size: 18px;">Create New Post</h3>
-                <form action="/post" method="POST" enctype="multipart/form-data">
-                    <input type="file" name="image" accept="image/*" required style="margin-bottom: 12px; color: #fff;">
-                    <input type="text" name="content" placeholder="Write a caption..." required>
-                    <button type="submit">Share Post</button>
-                </form>
-            </div>
-        </div>
-
         <!-- Feed Section -->
         <div class="feed-section">
             <% if (posts.length === 0) { %>
@@ -60,7 +20,7 @@
                 <% posts.forEach(post => { %>
                     <div class="post-card">
                         <div class="post-header">
-                            <b>@<%= post.username %></b>
+                            <a href="/profile/<%= post.username %>"><b>@<%= post.username %></b></a>
                             <small><%= post.created_at %></small>
                         </div>
                         <% if (post.image_url) { %>
@@ -69,19 +29,19 @@
                         <div class="post-actions">
                             <div class="action-left">
                                 <form action="/like/<%= post.id %>" method="POST" class="like-form">
-                                    <button type="submit" title="Like">🤍</button>
+                                    <button type="submit">🤍</button>
                                 </form>
-                                <span title="Comment">💬</span>
+                                <span>💬</span>
                             </div>
-                            <button class="save-btn" title="Save / Pin">🔖</button>
+                            <button class="save-btn">🔖</button>
                         </div>
                         <div class="post-likes"><%= post.likes %> likes</div>
-                        <div class="post-text"><span>@<%= post.username %></span> <%= post.content %></div>
+                        <div class="post-text"><a href="/profile/<%= post.username %>">@<%= post.username %></a> <%= post.content %></div>
 
-                        <!-- Comments Section -->
+                        <!-- Comments -->
                         <div class="comments-section">
                             <% post.comments.forEach(c => { %>
-                                <div class="comment-item"><b>@<%= c.username %></b> <%= c.text %></div>
+                                <div class="comment-item"><a href="/profile/<%= c.username %>">@<%= c.username %></a> <%= c.text %></div>
                             <% }) %>
                             <form action="/comment/<%= post.id %>" method="POST" class="comment-form">
                                 <input type="text" name="text" placeholder="Add a comment..." required>
@@ -94,18 +54,63 @@
         </div>
     </div>
 
+    <!-- Post Upload Modal -->
+    <div id="postModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h3 style="margin-bottom: 15px; font-size: 18px;">Create New Post</h3>
+            <form action="/post" method="POST" enctype="multipart/form-data">
+                <input type="file" name="image" accept="image/*" required style="margin-bottom: 12px; color: #fff;">
+                <input type="text" name="content" placeholder="Write a caption..." required>
+                <button type="submit">Share Post</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search Modal Overlay -->
+    <div id="searchModal" class="search-modal">
+        <div class="search-header">
+            <input type="text" id="searchInput" placeholder="Search username..." onkeyup="performSearch()">
+            <button onclick="closeSearch()" style="background:none; border:none; color:#fff; font-size:16px;">Cancel</button>
+        </div>
+        <div id="searchResults" class="search-results-list"></div>
+    </div>
+
+    <!-- Instagram Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <a href="/feed" class="nav-item active">🏠</a>
+        <button class="nav-item" onclick="openSearch()">🔍</button>
+        <button class="nav-item" onclick="openModal()">➕</button>
+        <a href="/profile/<%= user.username %>" class="nav-item">👤</a>
+    </div>
+
     <script>
-        function openModal() {
-            document.getElementById('postModal').style.display = 'flex';
+        function openModal() { document.getElementById('postModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('postModal').style.display = 'none'; }
+        
+        function openSearch() { document.getElementById('searchModal').style.display = 'flex'; document.getElementById('searchInput').focus(); }
+        function closeSearch() { document.getElementById('searchModal').style.display = 'none'; }
+
+        function performSearch() {
+            let query = document.getElementById('searchInput').value;
+            if(query.trim() === '') {
+                document.getElementById('searchResults').innerHTML = '';
+                return;
+            }
+            fetch('/search?q=' + query)
+            .then(res => res.json())
+            .then(users => {
+                let html = '';
+                users.forEach(u => {
+                    html += `<a href="/profile/${u.username}" class="user-search-item"><b>@${u.username}</b></a>`;
+                });
+                document.getElementById('searchResults').innerHTML = html;
+            });
         }
-        function closeModal() {
-            document.getElementById('postModal').style.display = 'none';
-        }
+
         window.onclick = function(event) {
             let modal = document.getElementById('postModal');
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
+            if (event.target == modal) modal.style.display = 'none';
         }
     </script>
 </body>
