@@ -8,9 +8,10 @@
 body {
     background-color: #000;
     color: #fff;
+    padding-bottom: 70px; /* Space for bottom nav */
 }
 
-/* Instagram Style Auth Pages */
+/* Auth Pages */
 .auth-body {
     display: flex;
     justify-content: center;
@@ -31,8 +32,7 @@ body {
 .auth-card h1 {
     font-size: 38px;
     margin-bottom: 25px;
-    font-family: 'Billabong', cursive, sans-serif;
-    letter-spacing: 1px;
+    font-family: cursive;
 }
 
 .auth-card input {
@@ -46,11 +46,6 @@ body {
     font-size: 13px;
 }
 
-.auth-card input:focus {
-    border-color: #a8a8a8;
-    outline: none;
-}
-
 .auth-card button {
     width: 100%;
     padding: 9px;
@@ -61,11 +56,6 @@ body {
     color: #fff;
     cursor: pointer;
     margin-top: 15px;
-    font-size: 14px;
-}
-
-.auth-card button:hover {
-    background: #1877f2;
 }
 
 .error-msg {
@@ -86,12 +76,12 @@ body {
     font-weight: 600;
 }
 
-/* Navbar */
+/* Top Navbar */
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 24px;
+    padding: 12px 20px;
     background: #000;
     border-bottom: 1px solid #262626;
     position: sticky;
@@ -100,87 +90,102 @@ body {
 }
 
 .navbar h2 {
-    font-size: 24px;
+    font-size: 22px;
     font-family: cursive;
 }
 
-.nav-center {
+/* Bottom Instagram Navigation Bar */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 55px;
+    background: #000;
+    border-top: 1px solid #262626;
     display: flex;
-    gap: 15px;
+    justify-content: space-around;
     align-items: center;
+    z-index: 1000;
 }
 
-.search-form input {
+.nav-item {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-item.active {
+    color: #0095f6;
+}
+
+/* Search Overlay Modal */
+.search-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 2000;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.search-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.search-header input {
+    flex: 1;
     background: #262626;
     border: none;
-    padding: 8px 14px;
+    padding: 10px 15px;
     border-radius: 8px;
     color: #fff;
-    font-size: 14px;
-    width: 220px;
+    font-size: 15px;
+    margin-right: 10px;
 }
 
-.nav-right {
+.search-results-list {
+    overflow-y: auto;
+}
+
+.user-search-item {
     display: flex;
     align-items: center;
-    gap: 15px;
-}
-
-.icon-btn {
-    font-size: 20px;
+    padding: 10px 0;
+    border-bottom: 1px solid #222;
     text-decoration: none;
     color: #fff;
 }
 
-.logout-btn {
-    background: #ed4956;
-    color: white;
-    padding: 5px 12px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 600;
+.user-search-item b {
+    font-size: 15px;
 }
 
 /* Container & Feed */
 .container {
     max-width: 470px;
-    margin: 20px auto;
+    margin: 15px auto;
     padding: 0 10px;
 }
 
-/* Floating Plus Button */
-.fab-container {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 25px;
-}
-
-.fab-btn {
-    background: #0095f6;
-    color: white;
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 28px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 149, 246, 0.4);
-    border: none;
-    transition: transform 0.2s;
-}
-
-.fab-btn:hover {
-    transform: scale(1.05);
-}
-
-/* Modal Popup */
+/* Upload Modal */
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
+    z-index: 2000;
     left: 0;
     top: 0;
     width: 100%;
@@ -244,13 +249,14 @@ body {
     padding: 12px 15px;
 }
 
-.post-header b {
-    font-size: 14px;
+.post-header a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
 }
 
 .post-header small {
     color: #a8a8a8;
-    font-size: 12px;
 }
 
 .post-img {
@@ -292,12 +298,14 @@ body {
     margin-bottom: 8px;
 }
 
-.post-text span {
+.post-text a {
+    color: #fff;
+    text-decoration: none;
     font-weight: 600;
     margin-right: 5px;
 }
 
-/* Comments Section */
+/* Comments */
 .comments-section {
     padding: 0 15px 12px 15px;
 }
@@ -307,7 +315,10 @@ body {
     margin-bottom: 3px;
 }
 
-.comment-item b {
+.comment-item a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
     margin-right: 5px;
 }
 
@@ -333,32 +344,69 @@ body {
     color: #0095f6;
     font-weight: 600;
     cursor: pointer;
-    font-size: 13px;
 }
 
-.search-results {
-    background: #121212;
-    border: 1px solid #262626;
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 20px;
+/* Profile Page */
+.profile-header {
+    display: flex;
+    align-items: center;
+    padding: 20px 15px;
+    gap: 30px;
 }
 
-.search-results h4 {
-    font-size: 13px;
-    color: #a8a8a8;
-    margin-bottom: 8px;
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    background: #262626;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
 }
 
-.user-result {
-    padding: 6px 0;
+.profile-info h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 20px;
     font-size: 14px;
-    border-bottom: 1px solid #222;
+    margin-bottom: 12px;
+}
+
+.profile-stats b {
+    color: #fff;
+}
+
+.follow-btn {
+    background: #0095f6;
+    color: #fff;
+    border: none;
+    padding: 6px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    border-top: 1px solid #262626;
+    padding-top: 2px;
+}
+
+.grid-item img {
+    width: 100%;
+    height: 130px;
+    object-fit: cover;
 }
 
 .no-posts {
     text-align: center;
     color: #a8a8a8;
     margin-top: 40px;
-    font-size: 14px;
 }
