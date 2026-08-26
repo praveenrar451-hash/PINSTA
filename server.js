@@ -11,13 +11,11 @@ const PORT = process.env.PORT || 3000;
 
 app.set('trust proxy', 1);
 
-// Ensure uploads folder exists
 const uploadDir = path.join(__dirname, 'public', 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Multer Storage Configuration for Direct File Upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadDir);
@@ -29,7 +27,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Middleware setup
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -37,26 +34,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Session configuration
 app.use(session({
   secret: 'pinsta_super_secret_key_2026',
   resave: false,
   saveUninitialized: false,
-  cookie: { 
-    maxAge: 24 * 60 * 60 * 1000,
-    secure: false 
-  }
+  cookie: { maxAge: 24 * 60 * 60 * 1000, secure: false }
 }));
 
-// Authentication Middleware
 const isAuthenticated = (req, res, next) => {
   if (req.session && req.session.user) {
     return next();
   }
   res.redirect('/login');
 };
-
-// --- ROUTES ---
 
 app.get('/', (req, res) => {
   if (req.session && req.session.user) {
@@ -66,14 +56,12 @@ app.get('/', (req, res) => {
   }
 });
 
-// Signup Page
 app.get('/signup', (req, res) => {
   res.render('signup', { error: null });
 });
 
 app.post('/signup', async (req, res) => {
   const { username, email_or_phone, password } = req.body;
-  
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     db.insertUser({ username, email_or_phone, password: hashedPassword }, (err, result) => {
@@ -88,19 +76,16 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-// Login Page
 app.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
 
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
-  
   db.findUserByUsername(username, async (err, user) => {
     if (err || !user) {
       return res.render('login', { error: 'Invalid username or password!' });
     }
-    
     const match = await bcrypt.compare(password, user.password);
     if (match) {
       req.session.user = { id: user.id, username: user.username };
@@ -111,47 +96,59 @@ app.post('/login', (req, res) => {
   });
 });
 
-// Feed / Home Page
 app.get('/feed', isAuthenticated, (req, res) => {
+  const searchQuery = req.query.search || '';
   db.getAllPosts((err, posts) => {
     const safePosts = err || !posts ? [] : posts;
-    res.render('feed', { user: req.session.user, posts: safePosts });
+    if (searchQuery.trim() !== '') {
+      db.searchUsers(searchQuery, (err, matchedUsers) => {
+        res.render('feed', { user: req.session.user, posts: safePosts, searchUsers: matchedUsers, searchQuery });
+      });
+    } else {
+      res.render('feed', { user: req.session.user, posts: safePosts, searchUsers: null, searchQuery: '' });
+    }
   });
 });
 
-// Create Post Route with Direct File Upload (`upload.single('image')`)
 app.post('/post', isAuthenticated, upload.single('image'), (req, res) => {
   const { content } = req.body;
   if (!req.session.user) return res.redirect('/login');
 
   const { id, username } = req.session.user;
-  
-  // Agar user ne photo select ki hai toh uska path set karein, warna null
-  let imagePath = null;
-  if (req.file) {
-    imagePath = '/uploads/' + req.file.filename;
-  }
+  let imagePath = req.file ? '/uploads/' + req.file.filename : null;
 
-  const postData = {
-    user_id: id,
-    username: username,
-    content: content || '',
-    image_url: imagePath
-  };
-
-  db.insertPost(postData, () => {
+  db.insertPost({ user_id: id, username, content: content || '', image_url: imagePath }, () => {
     res.redirect('/feed');
   });
 });
 
-// Logout Route
+app.post('/like/:id', isAuthenticated, (req, res) => {
+  db.likePost(req.params.id, () => {
+    res.redirect('/feed');
+  });
+});
+
+app.post('/comment/:id', isAuthenticated, (req, res) => {
+  const { text } = req.body;
+  if (text) {
+    db.addComment(req.params.id, req.session.user.username, text, () => {
+      res.redirect('/feed');
+    });
+  } else {
+    res.redirect('/feed');
+  }
+});
+
+app.get('/chat', isAuthenticated, (req, res) => {
+  res.render('chat', { user: req.session.user });
+});
+
 app.get('/logout', (req, res) => {
   req.session.destroy(() => {
     res.redirect('/login');
   });
 });
 
-// Server Listen
 app.listen(PORT, () => {
   console.log(`PINSTA server is running on port ${PORT}`);
 });
