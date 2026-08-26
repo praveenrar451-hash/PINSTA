@@ -1,4 +1,6 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const path = require('path');
@@ -7,6 +9,9 @@ const fs = require('fs');
 const db = require('./database');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
 const PORT = process.env.PORT || 3000;
 
 app.set('trust proxy', 1);
@@ -32,12 +37,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-app.use(session({
+const sessionMiddleware = session({
   secret: 'pinsta_super_secret_key_2026',
   resave: false,
   saveUninitialized: false,
   cookie: { maxAge: 24 * 60 * 60 * 1000, secure: false }
-}));
+});
+
+app.use(sessionMiddleware);
+
+// Share session with Socket.io
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
+});
 
 const isAuthenticated = (req, res, next) => {
   if (req.session && req.session.user) return next();
@@ -137,12 +149,45 @@ app.post('/comment/:id', isAuthenticated, (req, res) => {
   }
 });
 
+// Chat Page routes
 app.get('/chat', isAuthenticated, (req, res) => {
-  res.render('chat', { user: req.session.user });
+  res.render('chat', { user: req.session.user, chatUser: null, messages: [] });
+});
+
+app.get('/chat/:username', isAuthenticated, (req, res) => {
+  const targetUsername = req.params.username;
+  db.findUserByUsername(targetUsername, (err, targetUser) => {
+    if (!targetUser || targetUser.username === req.session.user.username) {
+      return res.redirect('/chat');
+    }
+    db.getConversation(req.session.user.username, targetUsername, (err, messages) => {
+      res.render('chat', { user: req.session.user, chatUser: targetUser, messages: messages || [] });
+    });
+  });
 });
 
 app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
 
-app.listen(PORT, () => console.log(`PINSTA running on port ${PORT}`));
+// Socket.io Real-time messaging
+io.on('connection', (socket) => {
+  const sessionUser = socket.request.session?.user;
+  if (!sessionUser) return;
+
+  socket.join(sessionUser.username);
+
+  socket.on('send_message', (data) => {
+    const { receiver, text } = data;
+    const sender = sessionUser.username;
+    if (!text || !receiver) return;
+
+    const savedMsg = db.saveMessage(sender, receiver, text);
+
+    // Send to receiver and sender in real-time
+    io.to(receiver).emit('receive_message', savedMsg);
+    io.to(sender).emit('receive_message', savedMsg);
+  });
+});
+
+server.listen(PORT, () => console.log(`PINSTA running on port ${PORT}`));
